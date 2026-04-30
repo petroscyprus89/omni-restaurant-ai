@@ -1,0 +1,179 @@
+{
+  "name": "[PROD] Omni-Restaurant - Voice Intake Router",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "vapi-booking-intake",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        160,
+        80
+      ],
+      "id": "faf2fd4a-3a7f-4f48-b0a0-7792ee99afad",
+      "name": "Webhook",
+      "webhookId": "72e25c9d-ea9e-449f-aa1f-81c3544ac8fb"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{$json.body.message.toolCalls[0].function.name}}",
+                    "rightValue": "book_table",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "41ce0946-4dc9-42b6-b3e9-89ab97c69c3e"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "4e4dcd6e-3f34-4de2-80bd-29449c2c5206",
+                    "leftValue": "={{$json.body.message.toolCalls[0].function.name}}",
+                    "rightValue": "submit_takeaway_order",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        352,
+        80
+      ],
+      "id": "67e66963-282f-4341-aa52-c44f732c7bfc",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "aibusiness937905@gmail.com",
+          "mode": "list",
+          "cachedResultName": "aibusiness937905@gmail.com"
+        },
+        "start": "={{ new Date(JSON.parse(JSON.stringify($json.body.message.toolCalls[0].function).replace(/\"arguments\"/g, '\"data\"')).data.reservation_date + 'T' + JSON.parse(JSON.stringify($json.body.message.toolCalls[0].function).replace(/\"arguments\"/g, '\"data\"')).data.reservation_time + ':00Z') }}\n",
+        "end": "={{ new Date(new Date(JSON.parse(JSON.stringify($json.body.message.toolCalls[0].function).replace(/\"arguments\"/g, '\"data\"')).data.reservation_date + 'T' + JSON.parse(JSON.stringify($json.body.message.toolCalls[0].function).replace(/\"arguments\"/g, '\"data\"')).data.reservation_time + ':00Z').getTime() + 3600000) }}\n",
+        "additionalFields": {
+          "summary": "={{ JSON.parse(JSON.stringify($json.body.message.toolCalls[0].function).replace(/\"arguments\"/g, '\"data\"')).data.customer_name }} - Party of {{ JSON.parse(JSON.stringify($json.body.message.toolCalls[0].function).replace(/\"arguments\"/g, '\"data\"')).data.party_size }}\n"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        464,
+        -48
+      ],
+      "id": "962d0242-fded-4705-88e8-e509078544e9",
+      "name": "Create an event",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "sjTf7XD8fCymOFY7",
+          "name": "Google Calendar account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "aibusiness937905@gmail.com",
+        "subject": "=🔥 KITCHEN TICKET - Takeaway for {{ JSON.parse(JSON.stringify($json.body.message.toolCalls[0].function).replace(/\"arguments\"/g, '\"data\"')).data.customer_name }}\n",
+        "message": "=<div style=\"font-family: Arial, sans-serif; border: 2px dashed #333; padding: 20px; max-width: 400px;\">\n    <h2 style=\"color: #d9534f; margin-top: 0; text-align: center;\">🔥 NEW TAKEAWAY ORDER 🔥</h2>\n    <hr style=\"border: 1px solid #eee;\">\n    <p><strong>Customer:</strong> {{ JSON.parse(JSON.stringify($json.body.message.toolCalls[0].function).replace(/\"arguments\"/g, '\"data\"')).data.customer_name }}</p>\n    <p><strong>Phone:</strong> <a href=\"tel:{{ JSON.parse(JSON.stringify($json.body.message.toolCalls[0].function).replace(/\"arguments\"/g, '\"data\"')).data.phone_number }}\">{{ JSON.parse(JSON.stringify($json.body.message.toolCalls[0].function).replace(/\"arguments\"/g, '\"data\"')).data.phone_number }}</a></p>\n    <hr style=\"border: 1px solid #eee;\">\n    <h3 style=\"margin-bottom: 5px;\">ORDER DETAILS:</h3>\n    <p style=\"font-size: 18px; font-weight: bold; color: #000; background-color: #f9f9f9; padding: 10px; border-left: 4px solid #d9534f;\">\n        {{ JSON.parse(JSON.stringify($json.body.message.toolCalls[0].function).replace(/\"arguments\"/g, '\"data\"')).data.order_details }}\n    </p>\n    <hr style=\"border: 1px solid #eee;\">\n    <h3 style=\"text-align: right; color: #28a745;\">Total: €{{ JSON.parse(JSON.stringify($json.body.message.toolCalls[0].function).replace(/\"arguments\"/g, '\"data\"')).data.total_price }}</h3>\n</div>\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        464,
+        224
+      ],
+      "id": "1212ec30-9378-4950-96c5-ac86775541d5",
+      "name": "Send a message",
+      "webhookId": "3a0983c0-f476-4ce6-9cdf-87df7b281c33",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "UODr0JVmAntNTEwe",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Create an event",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "915b6865-11a3-4076-b5d3-28cdb852adaa",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e735d0498e107683d53863f8d0e8606f293aac2057616fcbc3931d253984ea99"
+  },
+  "id": "HirtkTWkp7240h28",
+  "tags": []
+}
